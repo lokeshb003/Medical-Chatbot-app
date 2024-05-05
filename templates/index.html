@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heal Field</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            padding: 20px;
+            background-color: #ffffff; /* White container background */
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #007bff; /* Blue heading */
+            margin-bottom: 20px;
+        }
+
+        #chat-container {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ced4da; /* Light gray border */
+            border-radius: 8px;
+            background-color: #f1f3f5; /* Light blue-gray background */
+            height: 300px;
+            overflow-y: scroll;
+        }
+
+        .message-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .user-message {
+            justify-content: flex-end; /* Align user messages to the right */
+            margin-left: auto; /* Push user messages to the left */
+        }
+
+        .chatbot-message {
+            justify-content: flex-end; /* Align chatbot messages to the right */
+            margin-right: auto; /* Push chatbot messages to the left */
+        }
+
+        .message-bubble {
+            padding: 8px 12px;
+            border-radius: 8px;
+            background-color: #007bff; /* Blue for user messages */
+            color: #ffffff; /* White text color */
+        }
+
+        #text-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ced4da; /* Light gray border */
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: #ffffff; /* White input background */
+            color: #495057; /* Dark gray text color */
+            margin-right: 10px; /* Margin between input and buttons */
+            height: 40px; /* Set input box height */
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .button-container button {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: none;
+            background-color: #007bff;
+            color: #ffffff;
+            cursor: pointer;
+            width: 100px; /* Set button width */
+        }
+
+        .button-container button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+
+        .user-avatar,
+        .chatbot-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .user-avatar {
+            background-color: #007bff; /* Blue for user avatar */
+        }
+
+        .chatbot-avatar {
+            background-color: #28a745; /* Green for chatbot avatar */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Heal Field</h1>
+        <div id="chat-container"></div>
+
+        <div class="input-container">
+            <input type="text" id="text-input" placeholder="Type your message here">
+            <div class="button-container">
+                <button id="submit-text"><i class="fas fa-paper-plane"></i></button>
+                <button id="start-recognition"><i class="fas fa-microphone-alt"></i></button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const textInput = document.getElementById('text-input');
+        const submitTextBtn = document.getElementById('submit-text');
+
+        // Map variations of keywords to the correct keywords
+        function preprocessInput(inputText) {
+            const keywordMap = {
+                'hello': 'hello',
+                'not well':'not well',
+                'nothing like that':'nothing like that',
+                'yeah it is there':'yeah it is there',
+                'no one like that':'no one like that',
+                'thank you': 'thank you',
+                'illness': 'illness',
+                'Back pain Causes':'Back pain Causes',
+                'Back pain Symptoms':'Back pain Symptoms',
+                'Back pain Prevention':'Back pain Prevention',
+                'Back pain Medicine':'Back pain Medicine',
+                'Food poisoning Causes':'Food poisoning Causes',
+                'Food poisoning Symptoms':'"Food poisoning Symptoms',
+                'Food poisoning Prevention':'Food poisoning Prevention',
+                'Food poisoning Medicine':'Food poisoning Medicine',
+                'Dry eyes Causes':'Dry eyes Causes',
+                'Dry eyes Symptoms':'Dry eyes Symptoms',
+                'Dry eyes Prevention':'Dry eyes Prevention',
+                'Dry eyes Medicine':'Dry eyes Medicine',
+                'Common cold Causes':'Common cold Causes',
+                'Common cold Symptoms':'Common cold Symptoms',
+                'Common cold Prevention':'Common cold Prevention',
+                'Common cold Medicine':'Common cold Medicine',
+                'Dandruff Causes':'Dandruff Causes',
+                'Dandruff Symptoms':'Dandruff Symptoms',
+                'Dandruff Prevention':'Dandruff Prevention',
+                'Dandruff Medicine':'Dandruff Medicine',
+                'Muscle pain Causes':'Muscle pain Causes',
+                'Muscle pain Symptoms':'Muscle pain Symptoms',
+                'Muscle pain Prevention':'Muscle pain Prevention',
+                'Muscle pain Medicine':'Muscle pain Medicine',
+                'Sore throat Causes':'Sore throat Causes',
+                'Sore throat Symptoms':'Sore throat Symptoms',
+                'Sore throat Prevention':'Sore throat Prevention',
+                'Sore throat Medicine':'Sore throat Medicine',
+                'Acne Causes':'Acne Causes',
+                'Acne Symptoms':'Acne Symptoms',
+                'Acne Prevention':'Acne Prevention',
+                'Acne Medicine':'Acne Medicine',
+                'Tooth ache Causes':'Tooth ache Causes',
+                'Tooth ache Symptoms':'Tooth ache Symptoms',
+                'Tooth ache Prevention':'Tooth ache Prevention',
+                'Tooth ache Medicine':'Tooth ache Medicine',
+                'Mouth ulcer Causes':'Mouth ulcer Causes',
+                'Mouth ulcer Symptoms':'Mouth ulcer Symptoms',
+                'Mouth ulcer Prevention':'Mouth ulcer Prevention',
+                'Mouth ulcer Medicine':'Mouth ulcer Medicine',
+                'Indigestion Causes':'Indigestion Causes',
+                'Indigestion Symptoms':'Indigestion Symptoms',
+                'Indigestion Prevention':'Indigestion Prevention',
+                'Indigestion Medicine':'Indigestion Medicine',
+                'Ear ache Causes':'Ear ache Causes',
+                'Ear ache Symptoms':'Ear ache Symptoms',
+                'Ear ache Prevention':'Ear ache Prevention',
+                'Ear ache Medicine':'Ear ache Medicine',
+                'Injury to abdomen Causes':'Injury to abdomen Causes',
+                'Injury to abdomen Symptoms':'Injury to abdomen Symptoms',
+                'Injury to abdomen Prevention':'Injury to abdomen Prevention',
+                'Injury to abdomen Medicine':'Injury to abdomen Medicine',
+                'Injury to hand Causes':'Injury to hand Causes',
+                'Injury to hand Symptoms':'Injury to hand Symptoms',
+                'Injury to hand Prevention':'Injury to hand Prevention',
+                'Injury to hand Medicine':'Injury to hand Medicine'
+            
+                // Add more mappings as needed
+            };
+            const words = inputText.split(' ');
+            for (let i = 0; i < words.length; i++) {
+                const word = words[i].toLowerCase();
+                if (keywordMap[word]) {
+                    words[i] = keywordMap[word];
+                }
+            }
+            return words.join(' ');
+        }
+        
+        function sendMessage(message, isUserMessage) {
+            const messageContainer = document.createElement('div');
+            messageContainer.classList.add('message-container');
+
+            const messageBubble = document.createElement('div');
+            messageBubble.classList.add('message-bubble');
+            messageBubble.textContent = message;
+
+            if (isUserMessage) {
+                messageContainer.classList.add('user-message');
+                const userAvatar = document.createElement('div');
+                userAvatar.classList.add('user-avatar');
+                messageContainer.appendChild(userAvatar); // Add user avatar to message container
+            } else {
+                messageContainer.classList.add('chatbot-message');
+                const chatbotAvatar = document.createElement('div');
+                chatbotAvatar.classList.add('chatbot-avatar');
+                messageContainer.appendChild(chatbotAvatar); // Add chatbot avatar to message container
+            }
+
+            messageContainer.appendChild(messageBubble);
+            chatContainer.appendChild(messageContainer);
+
+            fetch('/speech', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const responseMessage = document.createElement('div');
+                responseMessage.classList.add('message-container');
+                responseMessage.classList.add('chatbot-message');
+
+                const responseBubble = document.createElement('div');
+                responseBubble.classList.add('message-bubble');
+                responseBubble.textContent = `Response: ${data.response_text}`;
+
+                const chatbotAvatar = document.createElement('div');
+                chatbotAvatar.classList.add('chatbot-avatar');
+
+                responseMessage.appendChild(chatbotAvatar); // Add chatbot avatar to response container
+                responseMessage.appendChild(responseBubble);
+                chatContainer.appendChild(responseMessage);
+
+                // Speech synthesis
+                const utterance = new SpeechSynthesisUtterance(data.response_text);
+                utterance.lang = 'en-US';
+                speechSynthesis.speak(utterance);
+            });
+        }
+
+        submitTextBtn.addEventListener('click', function() {
+            let message = textInput.value.trim();
+            if (message) {
+                message = preprocessInput(message); // Preprocess the input
+                sendMessage(message, true); // User message
+                textInput.value = '';
+            }
+        });
+
+        document.getElementById('start-recognition').addEventListener('click', function() {
+            const recognition = new webkitSpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.start();
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript.trim();
+                if (transcript) {
+                    sendMessage(`Speech: ${transcript}`, true); // User message
+                }
+            };
+        });
+    </script>
+</body>
+</html>
